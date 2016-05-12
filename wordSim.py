@@ -1,10 +1,14 @@
 from config import *
 
 ################################################################################
-def loadPPDB(ppdbFileName = 'Resources/ppdb-1.0-xxxl-lexical.extended.synonyms.uniquepairs'):
+def loadPPDB(ppdbFileName=None):
 
     global ppdbSim
     global ppdbDict
+    
+    if ppdbFileName is None:
+        currentDirectory = os.path.dirname(os.path.realpath(__file__));
+        ppdbFileName = currentDirectory + '/' + 'Resources/ppdb-1.0-xxxl-lexical.extended.synonyms.uniquepairs';
 
     count = 0
     
