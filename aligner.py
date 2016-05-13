@@ -12,6 +12,7 @@ def alignNouns(source, target, sourceParseResult, targetParseResult, existingAli
     global ppdbSim
     global theta1
 
+    #test
 
     nounAlignments = []
 
