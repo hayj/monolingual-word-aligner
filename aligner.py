@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from wordSim import *
 from util import *
 from coreNlpUtil import *
@@ -1544,7 +1546,7 @@ def getParsedSentence(sentence):
     from fr.hayj.datastructure.hashmap import *;
     from fr.hayj.sts.utils import *;
     if hm is None:
-        hm = LimitedHashMap(getWorkingDirectory() + "/sultanwordaligner_limitedhashmap_parsing_tests.bin");
+        hm = LimitedHashMap(getWorkingDirectory() + "/sultanwordaligner_limitedhashmap.bin");
         print "Init hm...";
     
     serialized = True;
@@ -1602,7 +1604,61 @@ def align(sentence1, sentence2):
         sentence2LemmasAndPosTags[i].append(sentence2PosTagged[i][3])
 
     myWordAlignments = alignWords(sentence1LemmasAndPosTags, sentence2LemmasAndPosTags, sentence1ParseResult, sentence2ParseResult)
-    myWordAlignmentTokens = [[str(sentence1Lemmatized[item[0]-1][2]), str(sentence2Lemmatized[item[1]-1][2])] for item in myWordAlignments]
+    
+    
+    
+    # SOME TESTS :
+#     print myWordAlignments
+#     print sentence1Lemmatized
+#     print sentence2Lemmatized
+    
+#     myWordAlignmentTokens = [];
+#     for item in myWordAlignments:
+#         temp1 = item[0] - 1;
+#         temp2 = item[1] - 1;
+#         
+#         temp3 = sentence1Lemmatized[temp1];
+#         temp4 = temp3[2];
+#         
+#         temp5 = sentence2Lemmatized[temp2];
+#         temp6 = temp5[2];
+#         
+#         # print temp4.encode("utf-8")
+#         
+# #         temp7 = str(temp4.encode("utf-8"));
+# #         temp8 = str(temp6.encode("utf-8"));
+# 
+#         temp7 = str(temp4);
+#         temp8 = str(temp6);
+#         
+#         myWordAlignmentTokens.append([temp7, temp8]);
+    
+    
+    
+    # I use unicode(o) instead of str(o) funct to solve encoding problems :
+    myWordAlignmentTokens = \
+    [ \
+        [ \
+            unicode \
+            ( \
+                sentence1Lemmatized \
+                [ \
+                    item[0] - 1 \
+                ][2] \
+             ), \
+             unicode \
+             ( \
+                sentence2Lemmatized \
+                [ \
+                    item[1] - 1 \
+                ][2] \
+              ) \
+         ] for item in myWordAlignments \
+     ]
+    
+    # Original line :
+    # myWordAlignmentTokens = [[str(sentence1Lemmatized[item[0]-1][2]), str(sentence2Lemmatized[item[1]-1][2])] for item in myWordAlignments]
+
 
 
     return [myWordAlignments, myWordAlignmentTokens]
