@@ -1,6 +1,7 @@
 import json
 from jsonrpc import ServerProxy, JsonRpc20, TransportTcpIp
 import jsonrpclib
+from util import *
 
 
 
@@ -20,8 +21,12 @@ class StanfordNLP:
 
 ##############################################################################################################################
 def parseText(sentences):
+    
+    # print "sentences = " + sentences
 
     parseResult = nlp.parse(sentences)
+        
+    # print "parseResult = " + str(parseResult)
 
     if len(parseResult['sentences']) == 1:
         return parseResult
@@ -64,7 +69,7 @@ def parseText(sentences):
 
     # remove all but the first entry
     parseResult['sentences'] = parseResult['sentences'][0:1]
-
+    
     return parseResult
 ##############################################################################################################################
 
@@ -156,8 +161,18 @@ def lemmatize(parseResult):
     res = []
 
     wordIndex = 1
+    # print "taille de i: " + str(len(parseResult['sentences'][0]['words']));
     for i in xrange(len(parseResult['sentences'][0]['words'])):
-        tag = [[parseResult['sentences'][0]['words'][i][1]['CharacterOffsetBegin'], parseResult['sentences'][0]['words'][i][1]['CharacterOffsetEnd']], wordIndex, parseResult['sentences'][0]['words'][i][0], parseResult['sentences'][0]['words'][i][1]['Lemma']]
+        tag = \
+        [ \
+            [ \
+                parseResult['sentences'][0]['words'][i][1]['CharacterOffsetBegin'], \
+                parseResult['sentences'][0]['words'][i][1]['CharacterOffsetEnd'] \
+            ], \
+            wordIndex, \
+            parseResult['sentences'][0]['words'][i][0], \
+            parseResult['sentences'][0]['words'][i][1]['Lemma'] \
+        ]
         wordIndex += 1
         res.append(tag)
 

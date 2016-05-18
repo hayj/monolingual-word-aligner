@@ -2,6 +2,10 @@ from wordSim import *
 from util import *
 from coreNlpUtil import *
 
+import json
+from jsonrpc import ServerProxy, JsonRpc20, TransportTcpIp
+import jsonrpclib
+
 
 
 ##############################################################################################################################
@@ -1530,19 +1534,54 @@ def alignWords(source, target, sourceParseResult, targetParseResult):
 
 
 ##############################################################################################################################
+hm = None;
+serializeCount = 0;
+
+def getParsedSentence(sentence):
+    global hm;
+    global serializeCount;
+    
+    from fr.hayj.datastructure.hashmap import *;
+    from fr.hayj.sts.utils import *;
+    if hm is None:
+        hm = LimitedHashMap(getWorkingDirectory() + "/sultanwordaligner_limitedhashmap_parsing_tests.bin");
+        print "Init hm...";
+    
+    serialized = True;
+    
+    sentenceParseResult = hm.get(sentence);
+    if sentenceParseResult is None:
+        sentenceParseResult = parseText(sentence);
+        hm.add(sentence, sentenceParseResult);
+        serialized = False;
+        
+    if not serialized:
+        serializeCount += 1;
+        # To serialize at the begining, else serialize at each 50 sentence parsed (not at each sentence...) : 
+        if ((serializeCount < 51) | ((serializeCount % 50) == 0)):
+            print "Serialized until: " + sentence;
+            hm.serialize();
+        else:
+            print "Waiting for serialize: " + sentence;
+    else:
+        print "Loaded: " + sentence;
+    
+    return sentenceParseResult;
+
+
 def align(sentence1, sentence2):
 
     if isinstance(sentence1, list):
         sentence1 = ' '.join(sentence1)
     if isinstance(sentence2, list):
         sentence2 = ' '.join(sentence2)
-        
-    sentence1ParseResult = parseText(sentence1)
-    sentence2ParseResult = parseText(sentence2)
 
+    sentence1ParseResult = getParsedSentence(sentence1);
+    sentence2ParseResult = getParsedSentence(sentence2);
+    
     sentence1Lemmatized = lemmatize(sentence1ParseResult)
     sentence2Lemmatized = lemmatize(sentence2ParseResult)
-
+    
     sentence1PosTagged = posTag(sentence1ParseResult)
     sentence2PosTagged = posTag(sentence2ParseResult)
 
@@ -1561,7 +1600,6 @@ def align(sentence1, sentence2):
         for item in sentence2Lemmatized[i]:
             sentence2LemmasAndPosTags[i].append(item)
         sentence2LemmasAndPosTags[i].append(sentence2PosTagged[i][3])
-
 
     myWordAlignments = alignWords(sentence1LemmasAndPosTags, sentence2LemmasAndPosTags, sentence1ParseResult, sentence2ParseResult)
     myWordAlignmentTokens = [[str(sentence1Lemmatized[item[0]-1][2]), str(sentence2Lemmatized[item[1]-1][2])] for item in myWordAlignments]

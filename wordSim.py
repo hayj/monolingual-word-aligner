@@ -1,4 +1,5 @@
 from config import *
+import os
 
 ################################################################################
 def loadPPDB(ppdbFileName=None):
