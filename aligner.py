@@ -1539,15 +1539,18 @@ def alignWords(source, target, sourceParseResult, targetParseResult):
 hm = None;
 serializeCount = 0;
 
-def getParsedSentence(sentence):
+def getParsedSentence(sentence, lastSentence=False):
     global hm;
     global serializeCount;
     
     from fr.hayj.datastructure.hashmap import *;
     from fr.hayj.sts.utils import *;
     if hm is None:
-        hm = LimitedHashMap(getWorkingDirectory() + "/sultanwordaligner_limitedhashmap.bin");
+        hm = SerializableHashMap(getWorkingDirectory() + "/sultanwordaligner_limitedhashmap.bin");
         print "Init hm...";
+    
+    if lastSentence:
+        print "||||||||||||||||||| lastSentence ||||||||||||||||||||";
     
     serialized = True;
     
@@ -1560,7 +1563,9 @@ def getParsedSentence(sentence):
     if not serialized:
         serializeCount += 1;
         # To serialize at the begining, else serialize at each 50 sentence parsed (not at each sentence...) : 
-        if ((serializeCount < 51) | ((serializeCount % 50) == 0)):
+        serializeEach = 200; # 50
+        numberOfFirstElementsToSerialize = 2; # 51
+        if (lastSentence | (serializeCount <= numberOfFirstElementsToSerialize) | ((serializeCount % serializeEach) == 0)):
             print "Serialized until: " + sentence;
             hm.serialize();
         else:
@@ -1571,7 +1576,7 @@ def getParsedSentence(sentence):
     return sentenceParseResult;
 
 
-def align(sentence1, sentence2):
+def align(sentence1, sentence2, lastSentence=False):
 
     if isinstance(sentence1, list):
         sentence1 = ' '.join(sentence1)
@@ -1579,7 +1584,7 @@ def align(sentence1, sentence2):
         sentence2 = ' '.join(sentence2)
 
     sentence1ParseResult = getParsedSentence(sentence1);
-    sentence2ParseResult = getParsedSentence(sentence2);
+    sentence2ParseResult = getParsedSentence(sentence2, lastSentence=lastSentence);
     
     sentence1Lemmatized = lemmatize(sentence1ParseResult)
     sentence2Lemmatized = lemmatize(sentence2ParseResult)

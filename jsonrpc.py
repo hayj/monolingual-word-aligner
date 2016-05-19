@@ -843,10 +843,10 @@ if hasattr(socket, 'AF_UNIX'):
             """
             TransportSocket.__init__( self, addr, limit, socket.AF_UNIX, socket.SOCK_STREAM, timeout, logfunc )
 
-class TransportTcpIp(TransportSocket):
+class TransportTcpIp(TransportSocket): 
     """Transport via TCP/IP.
     """
-    def __init__(self, addr=None, limit=4096, timeout=5.0, logfunc=log_dummy):
+    def __init__(self, addr=None, limit=4096, timeout=20.0, logfunc=log_dummy):
         """
         :Parameters:
             - addr: ("host",port)
