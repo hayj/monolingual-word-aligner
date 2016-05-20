@@ -4,10 +4,6 @@ from wordSim import *
 from util import *
 from coreNlpUtil import *
 
-import json
-from jsonrpc import ServerProxy, JsonRpc20, TransportTcpIp
-import jsonrpclib
-
 
 
 ##############################################################################################################################
@@ -17,6 +13,7 @@ def alignNouns(source, target, sourceParseResult, targetParseResult, existingAli
 
     global ppdbSim
     global theta1
+
 
     nounAlignments = []
 
@@ -1536,143 +1533,43 @@ def alignWords(source, target, sourceParseResult, targetParseResult):
 
 
 ##############################################################################################################################
+def align(sentence1, sentence2):
 
+    if isinstance(sentence1, list):
+        sentence1 = ' '.join(sentence1)
+    if isinstance(sentence2, list):
+        sentence2 = ' '.join(sentence2)
+        
+    sentence1ParseResult = parseText(sentence1)
+    sentence2ParseResult = parseText(sentence2)
+
+    sentence1Lemmatized = lemmatize(sentence1ParseResult)
+    sentence2Lemmatized = lemmatize(sentence2ParseResult)
+
+    sentence1PosTagged = posTag(sentence1ParseResult)
+    sentence2PosTagged = posTag(sentence2ParseResult)
+
+    sentence1LemmasAndPosTags = []
+    for i in xrange(len(sentence1Lemmatized)):
+        sentence1LemmasAndPosTags.append([])    
+    for i in xrange(len(sentence1Lemmatized)):
+        for item in sentence1Lemmatized[i]:
+            sentence1LemmasAndPosTags[i].append(item)
+        sentence1LemmasAndPosTags[i].append(sentence1PosTagged[i][3])
  
-from fr.hayj.util.parser import *;
-from fr.hayj.datastructure.hashmap import *;
-class SultanAligner():
-    """
-    This class serialize all parsed sentences and alignment to compute
-    these two process only once.
-    """
-    
-    def __init__(self, verbose=True, stanfordParsingFileId="stanfordparsing_for_dls2015", alignmentFileId="dls2015_alignment"):
-        # Private vars :
-        self.stanfordParser = None;
-        self.alignmentParser = None;
-        
-        # Some instance vars :
-        self.verbose = verbose;
-        self.stanfordParsingFileId = stanfordParsingFileId;
-        self.alignmentFileId = alignmentFileId;
-        
-        # Load the serialized alignments :
-        self.loadAlignmentParser();
-        
-      
-    def loadStanfordParser(self):
-        # Create the parser :
-        if self.stanfordParser is None:
-            self.stanfordParser = SerializableParser(fileId=self.stanfordParsingFileId, verbose=self.verbose);
-            # self.stanfordParser.clean()
-      
-    def loadAlignmentParser(self):
-        # Create the parser :
-        if self.alignmentParser is None:
-            self.alignmentParser = SerializableParser(fileId=self.alignmentFileId, verbose=self.verbose);
-            # self.alignmentParser.clean()
-      
-    def parseAll(self, sentences, fileId="stanfordparsing_for_dls2015"):
-        # Init the parser interface :
-        self.loadStanfordParser();
-        # Parse all :
-        self.stanfordParser.parseAll(sentences, parseText);
-      
-      
-    def getAlign(self, sentence1, sentence2):
-        # Send an object pair to retrieve or compute and store :
-        return self.alignmentParser.parse(SentencePair(sentence1, sentence2), self.align);
+    sentence2LemmasAndPosTags = []
+    for i in xrange(len(sentence2Lemmatized)):
+        sentence2LemmasAndPosTags.append([])    
+    for i in xrange(len(sentence2Lemmatized)):
+        for item in sentence2Lemmatized[i]:
+            sentence2LemmasAndPosTags[i].append(item)
+        sentence2LemmasAndPosTags[i].append(sentence2PosTagged[i][3])
 
 
-    def align(self, sentencePair):
-        # Retrieve each sentence :
-        sentence1 = sentencePair.s1;
-        sentence2 = sentencePair.s2;
-        
-        # Init the parser interface because we need the parsed representation :
-        self.loadStanfordParser();
-    
-        # etrieve or compute and store :
-        sentence1ParseResult = self.stanfordParser.parse(sentence1, parseText);
-        sentence2ParseResult = self.stanfordParser.parse(sentence2, parseText);
+    myWordAlignments = alignWords(sentence1LemmasAndPosTags, sentence2LemmasAndPosTags, sentence1ParseResult, sentence2ParseResult)
+    myWordAlignmentTokens = [[str(sentence1Lemmatized[item[0]-1][2]), str(sentence2Lemmatized[item[1]-1][2])] for item in myWordAlignments]
 
-        # Sultan processing :
-        sentence1Lemmatized = lemmatize(sentence1ParseResult)
-        sentence2Lemmatized = lemmatize(sentence2ParseResult)
-        
-        sentence1PosTagged = posTag(sentence1ParseResult)
-        sentence2PosTagged = posTag(sentence2ParseResult)
-    
-        sentence1LemmasAndPosTags = []
-        for i in xrange(len(sentence1Lemmatized)):
-            sentence1LemmasAndPosTags.append([])    
-        for i in xrange(len(sentence1Lemmatized)):
-            for item in sentence1Lemmatized[i]:
-                sentence1LemmasAndPosTags[i].append(item)
-            sentence1LemmasAndPosTags[i].append(sentence1PosTagged[i][3])
-     
-        sentence2LemmasAndPosTags = []
-        for i in xrange(len(sentence2Lemmatized)):
-            sentence2LemmasAndPosTags.append([])    
-        for i in xrange(len(sentence2Lemmatized)):
-            for item in sentence2Lemmatized[i]:
-                sentence2LemmasAndPosTags[i].append(item)
-            sentence2LemmasAndPosTags[i].append(sentence2PosTagged[i][3])
-    
-        myWordAlignments = alignWords(sentence1LemmasAndPosTags, sentence2LemmasAndPosTags, sentence1ParseResult, sentence2ParseResult)
-        
-        # I use unicode(o) instead of str(o) funct to solve encoding problems :
-        myWordAlignmentTokens = \
-        [ \
-            [ \
-                unicode \
-                ( \
-                    sentence1Lemmatized \
-                    [ \
-                        item[0] - 1 \
-                    ][2] \
-                 ), \
-                 unicode \
-                 ( \
-                    sentence2Lemmatized \
-                    [ \
-                        item[1] - 1 \
-                    ][2] \
-                  ) \
-             ] for item in myWordAlignments \
-         ]
-        
-        # Original line :
-        # myWordAlignmentTokens = [[str(sentence1Lemmatized[item[0]-1][2]), str(sentence2Lemmatized[item[1]-1][2])] for item in myWordAlignments]    
-        
-        # We return the result :
-        return [myWordAlignments, myWordAlignmentTokens]
-    
-            
-        # SOME TESTS :
-    #     print myWordAlignments
-    #     print sentence1Lemmatized
-    #     print sentence2Lemmatized
-        
-    #     myWordAlignmentTokens = [];
-    #     for item in myWordAlignments:
-    #         temp1 = item[0] - 1;
-    #         temp2 = item[1] - 1;
-    #         
-    #         temp3 = sentence1Lemmatized[temp1];
-    #         temp4 = temp3[2];
-    #         
-    #         temp5 = sentence2Lemmatized[temp2];
-    #         temp6 = temp5[2];
-    #         
-    #         # print temp4.encode("utf-8")
-    #         
-    # #         temp7 = str(temp4.encode("utf-8"));
-    # #         temp8 = str(temp6.encode("utf-8"));
-    # 
-    #         temp7 = str(temp4);
-    #         temp8 = str(temp6);
-    #         
-    #         myWordAlignmentTokens.append([temp7, temp8]);
+
+    return [myWordAlignments, myWordAlignmentTokens]
 ##############################################################################################################################
 
